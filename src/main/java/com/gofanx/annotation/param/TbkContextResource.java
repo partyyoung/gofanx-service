@@ -325,15 +325,22 @@ public class TbkContextResource
 			// select表auction_list
 			String actionid = null;
 
-			String select = "select `actionid` from `gofanx`.`tbk_auction` where itemid=" + auctionid;
+			String select = "select `actionid`,`status` from `gofanx`.`tbk_auction` where itemid=" + auctionid;
 
 			try
 			{
 				ResultSet r = statement.executeQuery(select);
-				if (r.next())
+				if (r.next() && r.getInt("status") == 0)
 				{
-					actionid = r.getString("actionid");
-					resultJson = "{\"ok\":true, \"data\":{\"pagelist\":[" + actionid + "]}}";
+					if (r.getInt("status") == 0)
+					{
+						actionid = r.getString("actionid");
+						resultJson = "{\"ok\":true, \"data\":{\"pagelist\":[" + actionid + "]}}";
+					}
+					else if (r.getInt("status") == 1)
+					{
+						resultJson = "{\"ok\":true, \"data\":{\"pagelist\":[" + actionid + "]}}";
+					}
 				}
 				else
 				{
@@ -382,14 +389,14 @@ public class TbkContextResource
 		{
 			String auctionid = queryMap.getFirst("auctionid");
 			String actionid = queryMap.getFirst("actionid");
-			String t = queryMap.getFirst("t");
+			String t = SomeStaticUtils.DATEFORMAT1.format(Long.parseLong(queryMap.getFirst("t")));
 
 			if (actionid == null)
 			{
 				// 此页面无返现
 				// insert update表auction_list
-				String insert = "INSERT INTO `gofanx`.`tbk_auction` " + "(`itemid`, `created`)" + "VALUES " + "(" + auctionid + ",'"
-						+ SomeStaticUtils.DATEFORMAT1.format(Long.parseLong(t)) + "')" + "ON DUPLICATE KEY UPDATE " + "`created`=VALUES(`created`)";
+				String insert = "INSERT INTO `gofanx`.`tbk_auction` " + "(`itemid`, `created`, `status`)" + "VALUES " + "(" + auctionid + ",'" + t + "',1)"
+						+ "ON DUPLICATE KEY UPDATE " + "`status`=VALUES(`status`)";
 				try
 				{
 					statement.execute(insert);
@@ -412,7 +419,7 @@ public class TbkContextResource
 					{
 						double zkPrice = Double.parseDouble(actionidMap.get("zkPrice").toString());
 						double commissionRatePercent = Double.parseDouble(actionidMap.get("commissionRatePercent").toString());
-						if (default_actionid_map == null || zkPrice > 200 && commissionRatePercent > 45)
+						if (default_actionid_map == null || zkPrice > 1000 && commissionRatePercent >= 45)
 						{
 							default_auctionid = actionidMap.get("auctionId").toString();
 							default_actionid = actionid;
@@ -424,10 +431,9 @@ public class TbkContextResource
 						e.printStackTrace();
 					}
 					// insert update表auction_list
-					String insert = "INSERT INTO `gofanx`.`tbk_auction` " + "(`itemid`, `actionid`, `alikeid`, `created`)" + "VALUES " + "("
-							+ actionidMap.get("auctionId").toString() + ",'" + actionid + "'," + auctionid + ",'"
-							+ SomeStaticUtils.DATEFORMAT1.format(Long.parseLong(t)) + "')" + "ON DUPLICATE KEY UPDATE "
-							+ "`actionid`=VALUES(`actionid`), `alikeid`=VALUES(`alikeid`)";
+					String insert = "INSERT INTO `gofanx`.`tbk_auction` " + "(`itemid`, `actionid`, `alikeid`, `created`, `updated`, `status`)" + "VALUES "
+							+ "(" + actionidMap.get("auctionId").toString() + ",'" + actionid + "'," + auctionid + ",'" + t + "','" + t + "',0)"
+							+ "ON DUPLICATE KEY UPDATE " + "`actionid`=VALUES(`actionid`), `alikeid`=VALUES(`alikeid`), `status`=VALUES(`status`)";
 
 					try
 					{
