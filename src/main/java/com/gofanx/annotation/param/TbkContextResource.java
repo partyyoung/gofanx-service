@@ -330,7 +330,7 @@ public class TbkContextResource
 			try
 			{
 				ResultSet r = statement.executeQuery(select);
-				if (r.next() && r.getInt("status") == 0)
+				if (r.next())
 				{
 					if (r.getInt("status") == 0)
 					{
