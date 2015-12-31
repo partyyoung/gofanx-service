@@ -33,7 +33,7 @@ import com.gofanx.util.SomeStaticUtils;
 public class TbkContextResource
 {
 	static String driver = "com.mysql.jdbc.Driver";
-	static String url = "jdbc:mysql://localhost:3306/stock?autoReconnect=true&failOverReadOnly=false&maxReconnects=10&characterEncoding=utf8"; // 127.16.1.37
+	static String url = "jdbc:mysql://localhost:3306/gofanx?autoReconnect=true&failOverReadOnly=false&maxReconnects=10&characterEncoding=utf8"; // 127.16.1.37
 	static String user = "root";
 	static String password = "root";
 	static Connection connection;
@@ -47,15 +47,16 @@ public class TbkContextResource
 			try
 			{
 				prop.load(is);
+				driver = prop.getProperty("jdbc.driver", driver);
+				url = prop.getProperty("jdbc.url", url);
+				user = prop.getProperty("jdbc.username", user);
+				password = prop.getProperty("jdbc.password", password);
 			}
 			catch (IOException e)
 			{
 				e.printStackTrace();
 			}
-			driver = prop.getProperty("jdbc.driver", driver);
-			url = prop.getProperty("jdbc.url", url);
-			user = prop.getProperty("jdbc.username", user);
-			password = prop.getProperty("jdbc.password", password);
+
 			connection = DBConf.getConnection(driver, url, user, password);
 			statement = connection.createStatement();
 			// connection.setAutoCommit(false);
@@ -322,35 +323,65 @@ public class TbkContextResource
 		if (queryMap.containsKey("auctionid"))
 		{
 			String auctionid = queryMap.getFirst("auctionid");
+			String t = SomeStaticUtils.DATEFORMAT1.format(Long.parseLong(queryMap.getFirst("t")));
 			// select表auction_list
 			String actionid = null;
 
-			String select = "select `actionid`,`status` from `gofanx`.`tbk_auction` where itemid=" + auctionid;
+			String select = "select `actionid`,`status` from `gofanx`.`tbk_auction` where `itemid`=" + auctionid;
 
 			try
 			{
 				ResultSet r = statement.executeQuery(select);
 				if (r.next())
 				{
-					if (r.getInt("status") == 0)
+					int status = r.getInt("status");
+					if (status == 0)
 					{
 						actionid = r.getString("actionid");
 						resultJson = "{\"ok\":true, \"data\":{\"pagelist\":[" + actionid + "]}}";
 					}
-					else if (r.getInt("status") == 1)
+					else if (status == 1)
 					{
 						resultJson = "{\"ok\":true, \"data\":{\"pagelist\":[" + actionid + "]}}";
+					}
+					else if (String.valueOf(status).startsWith("2"))
+					{
+						// 此页面返现未知
+						if (status < 29999)
+						{
+							status++;
+							String update = "UPDATE `gofanx`.`tbk_auction` SET `status`=" + status + " WHERE `itemid`=" + auctionid;
+							try
+							{
+								statement.executeUpdate(update);
+							}
+							catch (SQLException e)
+							{
+								e.printStackTrace();
+							}
+						}
 					}
 				}
 				else
 				{
 					resultJson = "{\"ok\":false}";
+
+					// 此页面返现未知
+					String insert = "INSERT INTO `gofanx`.`tbk_auction` " + "(`itemid`, `created`, `status`)" + "VALUES " + "(" + auctionid + ",'" + t
+							+ "',20001)" + "ON DUPLICATE KEY UPDATE " + "`status`=VALUES(`status`)";
+					try
+					{
+						statement.executeUpdate(insert);
+					}
+					catch (SQLException e)
+					{
+						e.printStackTrace();
+					}
 				}
 				r.close();
 			}
 			catch (SQLException e)
 			{
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 
@@ -399,7 +430,7 @@ public class TbkContextResource
 						+ "ON DUPLICATE KEY UPDATE " + "`status`=VALUES(`status`)";
 				try
 				{
-					statement.execute(insert);
+					statement.executeUpdate(insert);
 				}
 				catch (SQLException e)
 				{
@@ -437,7 +468,7 @@ public class TbkContextResource
 
 					try
 					{
-						statement.execute(insert);
+						statement.executeUpdate(insert);
 					}
 					catch (SQLException e)
 					{
