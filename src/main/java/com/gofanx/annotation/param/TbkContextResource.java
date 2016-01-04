@@ -74,6 +74,16 @@ public class TbkContextResource
 	static String default_auctionid, default_actionid;
 	static HashMap default_actionid_map;
 
+	/**
+	 * 安装插件的默认打开页面
+	 * 
+	 * @param application
+	 * @param request
+	 * @param provider
+	 * @param uriInfo
+	 * @param headers
+	 * @return
+	 */
 	@GET
 	@Path("/auction/default")
 	@Produces(MediaType.TEXT_PLAIN)
@@ -83,6 +93,16 @@ public class TbkContextResource
 		return "{\"ok\":true, \"data\": { \"itemurl\":\"http://detail.tmall.com/item.htm?id=" + default_auctionid + "\"}}";
 	}
 
+	/**
+	 * 插件公告栏内容
+	 * 
+	 * @param application
+	 * @param request
+	 * @param provider
+	 * @param uriInfo
+	 * @param headers
+	 * @return
+	 */
 	@GET
 	@Path("/notice/tbk")
 	@Produces(MediaType.TEXT_PLAIN)
@@ -367,8 +387,8 @@ public class TbkContextResource
 					resultJson = "{\"ok\":false}";
 
 					// 此页面返现未知
-					String insert = "INSERT INTO `gofanx`.`tbk_auction` " + "(`itemid`, `created`, `status`)" + "VALUES " + "(" + auctionid + ",'" + t
-							+ "',20001)" + "ON DUPLICATE KEY UPDATE " + "`status`=VALUES(`status`)";
+					String insert = "INSERT INTO `gofanx`.`tbk_auction` " + "(`itemid`, `created`, `updated`, `status`)" + "VALUES " + "(" + auctionid + ",'"
+							+ t + "','" + t + "',20001)" + "ON DUPLICATE KEY UPDATE `status`=VALUES(`status`)";
 					try
 					{
 						statement.executeUpdate(insert);
@@ -426,8 +446,8 @@ public class TbkContextResource
 			{
 				// 此页面无返现
 				// insert update表auction_list
-				String insert = "INSERT INTO `gofanx`.`tbk_auction` " + "(`itemid`, `created`, `status`)" + "VALUES " + "(" + auctionid + ",'" + t + "',1)"
-						+ "ON DUPLICATE KEY UPDATE " + "`status`=VALUES(`status`)";
+				String insert = "INSERT INTO `gofanx`.`tbk_auction` " + "(`itemid`, `created`, `updated`, `status`)" + "VALUES " + "(" + auctionid + ",'" + t
+						+ "','" + t + "',1)" + "ON DUPLICATE KEY UPDATE `status`=VALUES(`status`)";
 				try
 				{
 					statement.executeUpdate(insert);
@@ -464,7 +484,7 @@ public class TbkContextResource
 					// insert update表auction_list
 					String insert = "INSERT INTO `gofanx`.`tbk_auction` " + "(`itemid`, `actionid`, `alikeid`, `created`, `updated`, `status`)" + "VALUES "
 							+ "(" + actionidMap.get("auctionId").toString() + ",'" + actionid + "'," + auctionid + ",'" + t + "','" + t + "',0)"
-							+ "ON DUPLICATE KEY UPDATE " + "`actionid`=VALUES(`actionid`), `alikeid`=VALUES(`alikeid`), `status`=VALUES(`status`)";
+							+ "ON DUPLICATE KEY UPDATE `actionid`=VALUES(`actionid`), `alikeid`=VALUES(`alikeid`), `status`=VALUES(`status`)";
 
 					try
 					{
