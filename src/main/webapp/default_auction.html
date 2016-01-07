@@ -2,13 +2,47 @@
 <head>
 <meta http-equiv="Content-Language" content="zh-CN">
 <meta HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=gb2312">
-<script src="http://hm.baidu.com/hm.js?6cab694c19bdd87460e2c6914781d3b2" language="JavaScript"></script>
-<script src="http://s95.cnzz.com/z_stat.php?id=1256972176&web_id=1256972176" language="JavaScript"></script>
+<script src="http://hm.baidu.com/hm.js?6cab694c19bdd87460e2c6914781d3b2"
+	language="JavaScript"></script>
+<script
+	src="http://s95.cnzz.com/z_stat.php?id=1256972176&web_id=1256972176"
+	language="JavaScript"></script>
 <title></title>
 </head>
 <body>
-<script>
-	location.href="https://detail.tmall.com/item.htm?id=40121923993";	
-</script>
+	<script>
+		function isJson(obj) {
+			if (obj.indexOf("{") == 0 || obj.indexOf("[") == 0) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		var xhr = new XMLHttpRequest();
+		xhr.onreadystatechange = function(data) {
+			if (xhr.readyState == 1) {
+			} else if (xhr.readyState == 4) {
+				if (xhr.status == 200) {
+					if (isJson(xhr.responseText)) {
+						var data = JSON.parse(xhr.responseText);
+						if (false != data.ok) {
+							location.href = data.data.itemurl;
+						}
+					} else {
+					}
+				} else {
+				}
+			}
+		}
+		var timestamp = (new Date()).getTime();
+		xhr
+				.open(
+						'GET',
+						'http://api.gofanx.com:8000/gofanx-service/webapi/tbkctx-resource/auction/default?t='
+								+ timestamp, true);
+		xhr.send();
+		//location.href = "https://detail.tmall.com/item.htm?id=40121923993";
+	</script>
 </body>
 </html>

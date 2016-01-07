@@ -104,6 +104,25 @@ public class TbkContextResource
 	 * @return
 	 */
 	@GET
+	@Path("/auction/recommend")
+	@Produces(MediaType.TEXT_PLAIN)
+	public String getTbkRecommend(@Context final Application application, @Context final Request request, @Context final javax.ws.rs.ext.Providers provider,
+			@Context final UriInfo uriInfo, @Context final HttpHeaders headers)
+	{
+		return "{\"ok\":true, \"data\":\"\"}";
+	}
+
+	/**
+	 * 插件公告栏内容
+	 * 
+	 * @param application
+	 * @param request
+	 * @param provider
+	 * @param uriInfo
+	 * @param headers
+	 * @return
+	 */
+	@GET
 	@Path("/notice/tbk")
 	@Produces(MediaType.TEXT_PLAIN)
 	public String getTbkNotice(@Context final Application application, @Context final Request request, @Context final javax.ws.rs.ext.Providers provider,
