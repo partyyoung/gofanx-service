@@ -469,7 +469,7 @@ public class TbkContextResource {
 						double commissionRatePercent = Double
 								.parseDouble(actionidMap.get(
 										"commissionRatePercent").toString());
-						if (default_actionid_map == null || zkPrice > 1000
+						if (default_actionid_map == null || zkPrice >= 500
 								&& commissionRatePercent >= 45) {
 							default_auctionid = actionidMap.get("auctionId")
 									.toString();
