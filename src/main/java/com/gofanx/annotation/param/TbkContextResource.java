@@ -122,7 +122,7 @@ public class TbkContextResource {
 	public String getTbkNotice(@Context final Application application, @Context final Request request, @Context final javax.ws.rs.ext.Providers provider,
 			@Context final UriInfo uriInfo, @Context final HttpHeaders headers)
 	{
-		String content = "公告:测试版上线啦";// 公告:测试版上线啦
+		String content = "";// 公告:测试版上线啦
 		String select = "select `content`,`status` from `gofanx`.`tbk_notice` where `status`=0 order by id desc limit 1";
 		try {
 			ResultSet r = statement.executeQuery(select);
