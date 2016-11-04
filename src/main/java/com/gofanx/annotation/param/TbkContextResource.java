@@ -30,43 +30,34 @@ import com.gofanx.util.DBConf;
 import com.gofanx.util.SomeStaticUtils;
 
 @Path("tbkctx-resource")
-public class TbkContextResource
-{
+public class TbkContextResource {
 	static String driver = "com.mysql.jdbc.Driver";
 	static String url = "jdbc:mysql://localhost:3306/gofanx?autoReconnect=true&failOverReadOnly=false&maxReconnects=10&characterEncoding=utf8"; // 127.16.1.37
 	static String user = "root";
 	static String password = "root";
 	static Connection connection;
 	static Statement statement;
-	static
-	{
-		try
-		{
-			InputStream is = TbkContextResource.class.getClassLoader().getResourceAsStream("application.properties");
+	static {
+		try {
+			InputStream is = TbkContextResource.class.getClassLoader()
+					.getResourceAsStream("application.properties");
 			Properties prop = new Properties();
-			try
-			{
+			try {
 				prop.load(is);
 				driver = prop.getProperty("jdbc.driver", driver);
 				url = prop.getProperty("jdbc.url", url);
 				user = prop.getProperty("jdbc.username", user);
 				password = prop.getProperty("jdbc.password", password);
-			}
-			catch (IOException e)
-			{
+			} catch (IOException e) {
 				e.printStackTrace();
 			}
 
 			connection = DBConf.getConnection(driver, url, user, password);
 			statement = connection.createStatement();
 			// connection.setAutoCommit(false);
-		}
-		catch (ClassNotFoundException e)
-		{
+		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
-		}
-		catch (SQLException e)
-		{
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
@@ -87,10 +78,12 @@ public class TbkContextResource
 	@GET
 	@Path("/auction/default")
 	@Produces(MediaType.TEXT_PLAIN)
-	public String getTbkDefault(@Context final Application application, @Context final Request request, @Context final javax.ws.rs.ext.Providers provider,
-			@Context final UriInfo uriInfo, @Context final HttpHeaders headers)
-	{
-		return "{\"ok\":true, \"data\": { \"itemurl\":\"http://detail.tmall.com/item.htm?id=" + default_auctionid + "\"}}";
+	public String getTbkDefault(@Context final Application application,
+			@Context final Request request,
+			@Context final javax.ws.rs.ext.Providers provider,
+			@Context final UriInfo uriInfo, @Context final HttpHeaders headers) {
+		return "{\"ok\":true, \"data\": { \"itemurl\":\"http://detail.tmall.com/item.htm?id="
+				+ default_auctionid + "\"}}";
 	}
 
 	/**
@@ -106,9 +99,10 @@ public class TbkContextResource
 	@GET
 	@Path("/auction/recommend")
 	@Produces(MediaType.TEXT_PLAIN)
-	public String getTbkRecommend(@Context final Application application, @Context final Request request, @Context final javax.ws.rs.ext.Providers provider,
-			@Context final UriInfo uriInfo, @Context final HttpHeaders headers)
-	{
+	public String getTbkRecommend(@Context final Application application,
+			@Context final Request request,
+			@Context final javax.ws.rs.ext.Providers provider,
+			@Context final UriInfo uriInfo, @Context final HttpHeaders headers) {
 		return "{\"ok\":true, \"data\":\"\"}";
 	}
 
@@ -128,7 +122,16 @@ public class TbkContextResource
 	public String getTbkNotice(@Context final Application application, @Context final Request request, @Context final javax.ws.rs.ext.Providers provider,
 			@Context final UriInfo uriInfo, @Context final HttpHeaders headers)
 	{
-		return "{\"ok\":true, \"data\":\"公告：测试版上线啦\"}";
+		String content = "公告:测试版上线啦";// 公告:测试版上线啦
+		String select = "select `content`,`status` from `gofanx`.`tbk_notice` where `status`=0 order by id desc limit 1";
+		try {
+			ResultSet r = statement.executeQuery(select);
+			if (r.next()) {
+				content = r.getString("content");
+			}
+		} catch (Exception e) {
+		}
+		return "{\"ok\":true, \"data\":\"" + content + "\"}";
 	}
 
 	/**
@@ -144,40 +147,35 @@ public class TbkContextResource
 	@GET
 	@Path("/user/cash")
 	@Produces(MediaType.TEXT_PLAIN)
-	public String addUserCash(@Context final Application application, @Context final Request request, @Context final javax.ws.rs.ext.Providers provider,
-			@Context final UriInfo uriInfo, @Context final HttpHeaders headers)
-	{
+	public String addUserCash(@Context final Application application,
+			@Context final Request request,
+			@Context final javax.ws.rs.ext.Providers provider,
+			@Context final UriInfo uriInfo, @Context final HttpHeaders headers) {
 		// System.out.print("addUserCash");
 		// System.out.println(uriInfo.getRequestUri());
 
-		final MultivaluedMap<String, String> queryMap = uriInfo.getQueryParameters();
+		final MultivaluedMap<String, String> queryMap = uriInfo
+				.getQueryParameters();
 
-		if (queryMap.containsKey("alipayAccount"))
-		{
+		if (queryMap.containsKey("alipayAccount")) {
 			String alipayAccount = queryMap.getFirst("alipayAccount");
 			String phone = queryMap.getFirst("phone");
 
-			final MultivaluedMap<String, String> headerMap = headers.getRequestHeaders();
-			if (headerMap.containsKey("username") && headerMap.containsKey("gofanx-cookie"))
-			{
+			final MultivaluedMap<String, String> headerMap = headers
+					.getRequestHeaders();
+			if (headerMap.containsKey("username")
+					&& headerMap.containsKey("gofanx-cookie")) {
 				String username = headerMap.getFirst("username");
 				String gofanxCookie = headerMap.getFirst("gofanx-cookie");
-				if (gofanxCookie.contains("=" + username + ";"))
-				{
+				if (gofanxCookie.contains("=" + username + ";")) {
 					// insert update表user_cash
-				}
-				else
-				{
+				} else {
 					return "{\"ok\":false}";
 				}
-			}
-			else
-			{
+			} else {
 				return "{\"ok\":false}";
 			}
-		}
-		else
-		{
+		} else {
 			return "{\"ok\":false}";
 		}
 		return "{\"ok\":true}";
@@ -196,30 +194,27 @@ public class TbkContextResource
 	@GET
 	@Path("/user/orderList")
 	@Produces(MediaType.TEXT_PLAIN)
-	public String getUserOrderList(@Context final Application application, @Context final Request request, @Context final javax.ws.rs.ext.Providers provider,
-			@Context final UriInfo uriInfo, @Context final HttpHeaders headers)
-	{
+	public String getUserOrderList(@Context final Application application,
+			@Context final Request request,
+			@Context final javax.ws.rs.ext.Providers provider,
+			@Context final UriInfo uriInfo, @Context final HttpHeaders headers) {
 		// System.out.print("getUserOrderList");
 		// System.out.println(uriInfo.getRequestUri());
 
-		final MultivaluedMap<String, String> headerMap = headers.getRequestHeaders();
-		if (headerMap.containsKey("username") && headerMap.containsKey("gofanx-cookie"))
-		{
+		final MultivaluedMap<String, String> headerMap = headers
+				.getRequestHeaders();
+		if (headerMap.containsKey("username")
+				&& headerMap.containsKey("gofanx-cookie")) {
 			String username = headerMap.getFirst("username");
 			String gofanxCookie = headerMap.getFirst("gofanx-cookie");
-			if (gofanxCookie.contains("=" + username + ";"))
-			{
+			if (gofanxCookie.contains("=" + username + ";")) {
 				// select表user_order,taoke_report_detail,user_income
 				// status:
 				return "{\"ok\":true}";
-			}
-			else
-			{
+			} else {
 				return "{\"ok\":false}";
 			}
-		}
-		else
-		{
+		} else {
 			return "{\"ok\":false}";
 		}
 	}
@@ -237,40 +232,35 @@ public class TbkContextResource
 	@GET
 	@Path("/user/order")
 	@Produces(MediaType.TEXT_PLAIN)
-	public String addUserOrder(@Context final Application application, @Context final Request request, @Context final javax.ws.rs.ext.Providers provider,
-			@Context final UriInfo uriInfo, @Context final HttpHeaders headers)
-	{
+	public String addUserOrder(@Context final Application application,
+			@Context final Request request,
+			@Context final javax.ws.rs.ext.Providers provider,
+			@Context final UriInfo uriInfo, @Context final HttpHeaders headers) {
 		// System.out.print("addUserOrder");
 		// System.out.println(uriInfo.getRequestUri());
 
-		final MultivaluedMap<String, String> queryMap = uriInfo.getQueryParameters();
+		final MultivaluedMap<String, String> queryMap = uriInfo
+				.getQueryParameters();
 
-		if (queryMap.containsKey("orderid"))
-		{
+		if (queryMap.containsKey("orderid")) {
 			String orderid = queryMap.getFirst("orderid");
 
-			final MultivaluedMap<String, String> headerMap = headers.getRequestHeaders();
-			if (headerMap.containsKey("username") && headerMap.containsKey("gofanx-cookie"))
-			{
+			final MultivaluedMap<String, String> headerMap = headers
+					.getRequestHeaders();
+			if (headerMap.containsKey("username")
+					&& headerMap.containsKey("gofanx-cookie")) {
 				String username = headerMap.getFirst("username");
 				String gofanxCookie = headerMap.getFirst("gofanx-cookie");
-				if (gofanxCookie.contains("=" + username + ";"))
-				{
+				if (gofanxCookie.contains("=" + username + ";")) {
 					// insert update表user_order
 					return "{\"ok\":true}";
-				}
-				else
-				{
+				} else {
 					return "{\"ok\":false}";
 				}
-			}
-			else
-			{
+			} else {
 				return "{\"ok\":false}";
 			}
-		}
-		else
-		{
+		} else {
 			return "{\"ok\":false}";
 		}
 	}
@@ -288,51 +278,44 @@ public class TbkContextResource
 	@GET
 	@Path("/code/getAuctionCode")
 	@Produces(MediaType.TEXT_PLAIN)
-	public String getAuctionCode(@Context final Application application, @Context final Request request, @Context final javax.ws.rs.ext.Providers provider,
-			@Context final UriInfo uriInfo, @Context final HttpHeaders headers)
-	{
+	public String getAuctionCode(@Context final Application application,
+			@Context final Request request,
+			@Context final javax.ws.rs.ext.Providers provider,
+			@Context final UriInfo uriInfo, @Context final HttpHeaders headers) {
 		// System.out.print("getAuctionCode");
 		// System.out.println(uriInfo.getRequestUri());
 
-		final MultivaluedMap<String, String> queryMap = uriInfo.getQueryParameters();
+		final MultivaluedMap<String, String> queryMap = uriInfo
+				.getQueryParameters();
 
-		if (queryMap.containsKey("auctionid"))
-		{
+		if (queryMap.containsKey("auctionid")) {
 			String auctionid = queryMap.getFirst("auctionid");
 			// select表ali_trackid
 			String ali_trackid = "2:mm_42209920_12002433_42798403";
 			long t = System.currentTimeMillis() / 1000;
-			if (queryMap.containsKey("t"))
-			{
+			if (queryMap.containsKey("t")) {
 				ali_trackid += ":" + queryMap.getFirst("t") + "_0_1";
-			}
-			else
-			{
+			} else {
 				ali_trackid += ":" + t + "_0_0";
 			}
-			String auctionCodeUrl = "https://item.taobao.com/item.htm?id=" + auctionid + "&ali_trackid=" + ali_trackid;
-			if (queryMap.containsKey("url"))
-			{
+			String auctionCodeUrl = "https://item.taobao.com/item.htm?id="
+					+ auctionid + "&ali_trackid=" + ali_trackid;
+			if (queryMap.containsKey("url")) {
 				String url = queryMap.getFirst("url");
-				if (url.indexOf("ali_trackid=") > -1)
-				{
+				if (url.indexOf("ali_trackid=") > -1) {
 					String url2 = url.split("ali_trackid=", 2)[1];
-					if (url2.indexOf("&") > -1)
-					{
+					if (url2.indexOf("&") > -1) {
 						url2 = url.split("&")[0];
 					}
 					auctionCodeUrl = url.replace(url2, ali_trackid);
-				}
-				else
-				{
+				} else {
 					auctionCodeUrl = url + "&" + ali_trackid;
 				}
 			}
 
-			return "{\"ok\":true, \"data\":{\"auctionid\":" + auctionid + ", \"auctionCodeUrl\":" + auctionCodeUrl + "}}";
-		}
-		else
-		{
+			return "{\"ok\":true, \"data\":{\"auctionid\":" + auctionid
+					+ ", \"auctionCodeUrl\":" + auctionCodeUrl + "}}";
+		} else {
 			return "{\"ok\":false}";
 		}
 	}
@@ -350,84 +333,80 @@ public class TbkContextResource
 	@GET
 	@Path("/auction/commissionRate")
 	@Produces(MediaType.TEXT_PLAIN)
-	public String getAuctionCommissionRate(@Context final Application application, @Context final Request request,
-			@Context final javax.ws.rs.ext.Providers provider, @Context final UriInfo uriInfo, @Context final HttpHeaders headers)
-	{
+	public String getAuctionCommissionRate(
+			@Context final Application application,
+			@Context final Request request,
+			@Context final javax.ws.rs.ext.Providers provider,
+			@Context final UriInfo uriInfo, @Context final HttpHeaders headers) {
 		// System.out.print("getAuctionCommissionRate");
 		// System.out.println(uriInfo.getRequestUri());
 
 		String resultJson = "{\"ok\":false}";
-		final MultivaluedMap<String, String> queryMap = uriInfo.getQueryParameters();
+		final MultivaluedMap<String, String> queryMap = uriInfo
+				.getQueryParameters();
 
-		if (queryMap.containsKey("auctionid"))
-		{
+		if (queryMap.containsKey("auctionid")) {
 			String auctionid = queryMap.getFirst("auctionid");
-			String t = SomeStaticUtils.DATEFORMAT1.format(Long.parseLong(queryMap.getFirst("t")));
+			String t = SomeStaticUtils.DATEFORMAT1.format(Long
+					.parseLong(queryMap.getFirst("t")));
 			// select表auction_list
 			String actionid = null;
 
-			String select = "select `actionid`,`status` from `gofanx`.`tbk_auction` where `itemid`=" + auctionid;
+			String select = "select `actionid`,`status` from `gofanx`.`tbk_auction` where `itemid`="
+					+ auctionid;
 
-			try
-			{
+			try {
 				ResultSet r = statement.executeQuery(select);
-				if (r.next())
-				{
+				if (r.next()) {
 					int status = r.getInt("status");
-					if (status == 0)
-					{
+					if (status == 0) {
 						actionid = r.getString("actionid");
-						resultJson = "{\"ok\":true, \"data\":{\"pagelist\":[" + actionid + "]}}";
-					}
-					else if (status == 1)
-					{
-						resultJson = "{\"ok\":true, \"data\":{\"pagelist\":[" + actionid + "]}}";
-					}
-					else if (String.valueOf(status).startsWith("2"))
-					{
+						resultJson = "{\"ok\":true, \"data\":{\"pagelist\":["
+								+ actionid + "]}}";
+					} else if (status == 1) {
+						resultJson = "{\"ok\":true, \"data\":{\"pagelist\":["
+								+ actionid + "]}}";
+					} else if (String.valueOf(status).startsWith("2")) {
 						// 此页面返现未知
-						if (status < 29999)
-						{
+						if (status < 29999) {
 							status++;
-							String update = "UPDATE `gofanx`.`tbk_auction` SET `status`=" + status + " WHERE `itemid`=" + auctionid;
-							try
-							{
+							String update = "UPDATE `gofanx`.`tbk_auction` SET `status`="
+									+ status + " WHERE `itemid`=" + auctionid;
+							try {
 								statement.executeUpdate(update);
-							}
-							catch (SQLException e)
-							{
+							} catch (SQLException e) {
 								e.printStackTrace();
 							}
 						}
 					}
-				}
-				else
-				{
+				} else {
 					resultJson = "{\"ok\":false}";
 
 					// 此页面返现未知
-					String insert = "INSERT INTO `gofanx`.`tbk_auction` " + "(`itemid`, `created`, `updated`, `status`)" + "VALUES " + "(" + auctionid + ",'"
-							+ t + "','" + t + "',20001)" + "ON DUPLICATE KEY UPDATE `status`=VALUES(`status`)";
-					try
-					{
+					String insert = "INSERT INTO `gofanx`.`tbk_auction` "
+							+ "(`itemid`, `created`, `updated`, `status`)"
+							+ "VALUES "
+							+ "("
+							+ auctionid
+							+ ",'"
+							+ t
+							+ "','"
+							+ t
+							+ "',20001)"
+							+ "ON DUPLICATE KEY UPDATE `status`=VALUES(`status`)";
+					try {
 						statement.executeUpdate(insert);
-					}
-					catch (SQLException e)
-					{
+					} catch (SQLException e) {
 						e.printStackTrace();
 					}
 				}
 				r.close();
-			}
-			catch (SQLException e)
-			{
+			} catch (SQLException e) {
 				e.printStackTrace();
 			}
 
 			return resultJson;
-		}
-		else
-		{
+		} else {
 			return "{\"ok\":false}";
 		}
 	}
@@ -445,86 +424,92 @@ public class TbkContextResource
 	@GET
 	@Path("/auction/commission")
 	@Produces(MediaType.TEXT_PLAIN)
-	public String addAuctionCommission(@Context final Application application, @Context final Request request,
-			@Context final javax.ws.rs.ext.Providers provider, @Context final UriInfo uriInfo, @Context final HttpHeaders headers)
-	{
+	public String addAuctionCommission(@Context final Application application,
+			@Context final Request request,
+			@Context final javax.ws.rs.ext.Providers provider,
+			@Context final UriInfo uriInfo, @Context final HttpHeaders headers) {
 		// System.out.print("addAuctionCommission");
 		// System.out.println(DecodeURL.decode(uriInfo.getRequestUri().toString()));
 
-		final MultivaluedMap<String, String> queryMap = uriInfo.getQueryParameters();
+		final MultivaluedMap<String, String> queryMap = uriInfo
+				.getQueryParameters();
 
 		// if (queryMap.containsKey("auctionid") &&
 		// queryMap.containsKey("actionid"))
-		if (queryMap.containsKey("auctionid"))
-		{
+		if (queryMap.containsKey("auctionid")) {
 			String auctionid = queryMap.getFirst("auctionid");
 			String actionid = queryMap.getFirst("actionid");
-			String t = SomeStaticUtils.DATEFORMAT1.format(Long.parseLong(queryMap.getFirst("t")));
+			String t = SomeStaticUtils.DATEFORMAT1.format(Long
+					.parseLong(queryMap.getFirst("t")));
 
-			if (actionid == null)
-			{
+			if (actionid == null) {
 				// 此页面无返现
 				// insert update表auction_list
-				String insert = "INSERT INTO `gofanx`.`tbk_auction` " + "(`itemid`, `created`, `updated`, `status`)" + "VALUES " + "(" + auctionid + ",'" + t
-						+ "','" + t + "',1)" + "ON DUPLICATE KEY UPDATE `status`=VALUES(`status`)";
-				try
-				{
+				String insert = "INSERT INTO `gofanx`.`tbk_auction` "
+						+ "(`itemid`, `created`, `updated`, `status`)"
+						+ "VALUES " + "(" + auctionid + ",'" + t + "','" + t
+						+ "',1)"
+						+ "ON DUPLICATE KEY UPDATE `status`=VALUES(`status`)";
+				try {
 					statement.executeUpdate(insert);
-				}
-				catch (SQLException e)
-				{
+				} catch (SQLException e) {
 					e.printStackTrace();
 				}
-			}
-			else
-			{
-				try
-				{
+			} else {
+				try {
 					// HashMap actionid =
 					// SomeStaticUtils.gson.fromJson(queryMap.getFirst("actionid"),
 					// HashMap.class);
-					HashMap actionidMap = (HashMap) SomeStaticUtils.yaml.load(actionid);
+					HashMap actionidMap = (HashMap) SomeStaticUtils.yaml
+							.load(actionid);
 
-					try
-					{
-						double zkPrice = Double.parseDouble(actionidMap.get("zkPrice").toString());
-						double commissionRatePercent = Double.parseDouble(actionidMap.get("commissionRatePercent").toString());
-						if (default_actionid_map == null || zkPrice > 1000 && commissionRatePercent >= 45)
-						{
-							default_auctionid = actionidMap.get("auctionId").toString();
+					try {
+						double zkPrice = Double.parseDouble(actionidMap.get(
+								"zkPrice").toString());
+						double commissionRatePercent = Double
+								.parseDouble(actionidMap.get(
+										"commissionRatePercent").toString());
+						if (default_actionid_map == null || zkPrice > 1000
+								&& commissionRatePercent >= 45) {
+							default_auctionid = actionidMap.get("auctionId")
+									.toString();
 							default_actionid = actionid;
 							default_actionid_map = new HashMap(actionidMap);
 						}
-					}
-					catch (Exception e)
-					{
+					} catch (Exception e) {
 						e.printStackTrace();
 					}
 					// insert update表auction_list
-					String insert = "INSERT INTO `gofanx`.`tbk_auction` " + "(`itemid`, `actionid`, `alikeid`, `created`, `updated`, `status`)" + "VALUES "
-							+ "(" + actionidMap.get("auctionId").toString() + ",'" + actionid + "'," + auctionid + ",'" + t + "','" + t + "',0)"
+					String insert = "INSERT INTO `gofanx`.`tbk_auction` "
+							+ "(`itemid`, `actionid`, `alikeid`, `created`, `updated`, `status`)"
+							+ "VALUES "
+							+ "("
+							+ actionidMap.get("auctionId").toString()
+							+ ",'"
+							+ actionid
+							+ "',"
+							+ auctionid
+							+ ",'"
+							+ t
+							+ "','"
+							+ t
+							+ "',0)"
 							+ "ON DUPLICATE KEY UPDATE `actionid`=VALUES(`actionid`), `alikeid`=VALUES(`alikeid`), `status`=VALUES(`status`)";
 
-					try
-					{
+					try {
 						statement.executeUpdate(insert);
-					}
-					catch (SQLException e)
-					{
+					} catch (SQLException e) {
 						e.printStackTrace();
 					}
-				}
-				catch (Exception e)
-				{
+				} catch (Exception e) {
 				}
 			}
 
-			String resultJson = "{\"ok\":true, \"data\":{\"pagelist\":[" + actionid + "]}}";
+			String resultJson = "{\"ok\":true, \"data\":{\"pagelist\":["
+					+ actionid + "]}}";
 
 			return resultJson;
-		}
-		else
-		{
+		} else {
 			return "{\"ok\":false}";
 		}
 	}
@@ -532,39 +517,42 @@ public class TbkContextResource
 	@GET
 	@Path("{region:.+}/shenyang/{district:\\w+}")
 	@Produces(MediaType.TEXT_PLAIN)
-	public String getByAddress(@Context final Application application, @Context final Request request, @Context final javax.ws.rs.ext.Providers provider,
-			@Context final UriInfo uriInfo, @Context final HttpHeaders headers)
-	{
+	public String getByAddress(@Context final Application application,
+			@Context final Request request,
+			@Context final javax.ws.rs.ext.Providers provider,
+			@Context final UriInfo uriInfo, @Context final HttpHeaders headers) {
 		System.out.println(uriInfo.getRequestUri());
 		final StringBuilder buf = new StringBuilder();
 		final String path = uriInfo.getPath();
 		buf.append("PATH=").append(path).append("\n");
 
-		final MultivaluedMap<String, String> pathMap = uriInfo.getPathParameters();
+		final MultivaluedMap<String, String> pathMap = uriInfo
+				.getPathParameters();
 		buf.append("PATH_PARAMETERS:\n");
 		iterating(buf, pathMap);
 
-		final MultivaluedMap<String, String> queryMap = uriInfo.getQueryParameters();
+		final MultivaluedMap<String, String> queryMap = uriInfo
+				.getQueryParameters();
 		buf.append("QUERY_PARAMETERS:\n");
 		iterating(buf, queryMap);
 
 		final List<PathSegment> segmentList = uriInfo.getPathSegments();
 		buf.append("PATH_SEGMENTS:\n");
-		for (final PathSegment pathSegment : segmentList)
-		{
-			final MultivaluedMap<String, String> matrix = pathSegment.getMatrixParameters();
+		for (final PathSegment pathSegment : segmentList) {
+			final MultivaluedMap<String, String> matrix = pathSegment
+					.getMatrixParameters();
 			final String segmentPath = pathSegment.getPath();
 			buf.append(matrix);
 			buf.append(segmentPath);
 		}
 		buf.append("\nHEAD:\n");
-		final MultivaluedMap<String, String> headerMap = headers.getRequestHeaders();
+		final MultivaluedMap<String, String> headerMap = headers
+				.getRequestHeaders();
 		iterating(buf, headerMap);
 		buf.append("COOKIE:\n");
 		final Map<String, Cookie> kukyMap = headers.getCookies();
 		final Iterator<Entry<String, Cookie>> i = kukyMap.entrySet().iterator();
-		while (i.hasNext())
-		{
+		while (i.hasNext()) {
 			final Entry<String, Cookie> e = i.next();
 			final String k = e.getKey();
 			buf.append("key=").append(k).append(",value=");
@@ -575,17 +563,16 @@ public class TbkContextResource
 		return buf.toString();
 	}
 
-	private void iterating(final StringBuilder buf, final MultivaluedMap<String, String> pathMap)
-	{
-		final Iterator<Entry<String, List<String>>> i = pathMap.entrySet().iterator();
-		while (i.hasNext())
-		{
+	private void iterating(final StringBuilder buf,
+			final MultivaluedMap<String, String> pathMap) {
+		final Iterator<Entry<String, List<String>>> i = pathMap.entrySet()
+				.iterator();
+		while (i.hasNext()) {
 			final Entry<String, List<String>> e = i.next();
 			final String k = e.getKey();
 			buf.append("key=").append(k).append(",value=");
 			final List<String> vList = e.getValue();
-			for (final String v : vList)
-			{
+			for (final String v : vList) {
 				buf.append(v).append(" ");
 			}
 			buf.append("\n");
